@@ -4,7 +4,7 @@
 block_cipher = None
 
 
-a = Analysis(['fly.py'],
+a = Analysis(['window.py'],
              pathex=[],
              binaries=[],
              datas=[ ('fly_1.png', '.'), ('fly_2.png', '.') ],
