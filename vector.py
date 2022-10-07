@@ -28,6 +28,8 @@ class Vector:
         return sqrt(self.abs()[0]**2.0 + self.abs()[1]**2.0)
     
     def normalised(self) -> Vector:
+        if self.length() == 0:
+            return Vector(0.0, 0.0)
         return Vector(self.abs()[0] / self.length(), self.abs()[1] / self.length())
 
     def __add__(self, other: Vector):
