@@ -18,7 +18,7 @@ class Fly:
 
         if dist_vec.length() > 100:
             self.target_point = None
-            travel = (dist_vec.normalised() * self.speed_chase).abs_int()
+            travel = (dist_vec.normalized() * self.speed_chase).abs_int()
             return (window_pos[0] + travel[0], window_pos[1] + travel[1])
         else:
             if self.target_point == None:
@@ -29,5 +29,5 @@ class Fly:
                 self.target_point = (mouse_pos[0] + random.randint(-60, 60), mouse_pos[1] + random.randint(-90, 90))
                 target_vec = Vector(fly_pos[0], fly_pos[1], self.target_point[0], self.target_point[1])
             
-            travel = (target_vec.normalised() * self.speed_idle).abs_int()
+            travel = (target_vec.normalized() * self.speed_idle).abs_int()
             return (window_pos[0] + travel[0], window_pos[1] + travel[1])
