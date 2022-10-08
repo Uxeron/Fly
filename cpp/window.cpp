@@ -1,5 +1,6 @@
 #include <windows.h>
 #include "resource.h"
+#include "fly.h"
 
 #define TIMER_FLY 1001
 
@@ -7,13 +8,15 @@ HBITMAP hBitmap_Fly_1 = NULL;
 HBITMAP hBitmap_Fly_2 = NULL;
 HBITMAP* hBitmap_Fly_Current = &hBitmap_Fly_1;
 
+Fly fly;
+
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, int nCmdShow)
 {
     // Register the window class.
     const char CLASS_NAME[]  = "Fly Transparent Window Class";
-    
+
     WNDCLASS wc = { };
     wc.lpfnWndProc   = WindowProc;
     wc.hInstance     = hInstance;
@@ -84,13 +87,25 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         case WM_TIMER:
         {
-            // Update fly
+            // Make sure this is the right timer
             if (wParam != TIMER_FLY)
                 break;
 
+            // Update fly image
             hBitmap_Fly_Current = hBitmap_Fly_Current == &hBitmap_Fly_1 ? &hBitmap_Fly_2 : &hBitmap_Fly_1;
             InvalidateRect(hWnd, NULL, false);
 
+            // Move fly
+            RECT window;
+            GetWindowRect(hWnd, &window);
+
+            POINT mouse;
+            GetCursorPos(&mouse);
+
+            Vector fly_target = fly.move(window.left, window.top, mouse.x, mouse.y);
+            SetWindowPos(hWnd, NULL, fly_target.x, fly_target.y, 0, 0, SWP_NOSIZE);
+
+            // Reset fly timer
             SetTimer(hWnd, TIMER_FLY, 33, (TIMERPROC) NULL);
             break;
         }
