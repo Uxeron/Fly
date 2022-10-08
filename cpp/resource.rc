@@ -1,0 +1,9 @@
+#include "resource.h"
+
+#ifndef _resource_rc
+#define _resource_rc
+
+IDI_ICON1         ICON    "fly.ico"
+IDB_BITMAP_FLY_1  BITMAP  "fly_1.bmp"
+IDB_BITMAP_FLY_2  BITMAP  "fly_2.bmp"
+#endif 
