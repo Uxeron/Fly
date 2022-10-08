@@ -3,7 +3,9 @@
 #include "fly.h"
 
 #define TIMER_FLY 1001
+#define WM_TRAY (WM_USER + 1)
 
+HICON hIcon = NULL;
 HBITMAP hBitmap_Fly_1 = NULL;
 HBITMAP hBitmap_Fly_2 = NULL;
 HBITMAP* hBitmap_Fly_Current = &hBitmap_Fly_1;
@@ -11,6 +13,8 @@ HBITMAP* hBitmap_Fly_Current = &hBitmap_Fly_1;
 Fly fly;
 
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+void AddTrayIcon(HWND hWnd);
+void RemoveTrayIcon(HWND hWnd);
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, int nCmdShow)
 {
@@ -35,11 +39,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
     SetLayeredWindowAttributes(hWnd, RGB(255, 255, 255), 0, LWA_COLORKEY);
 
     // Load images from embedded resource file
+    hIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(IDI_ICON1), IMAGE_ICON, 0, 0, 0);
     hBitmap_Fly_1 = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_BITMAP_FLY_1), IMAGE_BITMAP, 0, 0, 0);
     hBitmap_Fly_2 = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_BITMAP_FLY_2), IMAGE_BITMAP, 0, 0, 0);
 
     // Start fly event timer
     SetTimer(hWnd, TIMER_FLY, 33, (TIMERPROC) NULL);
+
+    // Create the tray icon
+    AddTrayIcon(hWnd);
 
     // Start GUI
     ShowWindow(hWnd, nCmdShow);
@@ -61,6 +69,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
         case WM_DESTROY:
         {
+            RemoveTrayIcon(hWnd);
             PostQuitMessage(0);
             return 0;
         }
@@ -109,7 +118,62 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             SetTimer(hWnd, TIMER_FLY, 33, (TIMERPROC) NULL);
             break;
         }
+
+        case WM_TRAY:
+        {
+            switch (LOWORD(lParam))
+            {
+                case WM_RBUTTONDOWN:
+                case WM_CONTEXTMENU:
+                {
+                    HMENU hmenu = CreatePopupMenu();
+                    InsertMenu(hmenu, 0, MF_BYPOSITION | MF_STRING, 1, "Quit");
+
+                    SetForegroundWindow(hWnd);
+
+                    POINT pt;
+                    GetCursorPos(&pt);
+                    int cmd = TrackPopupMenu(hmenu, TPM_RETURNCMD | TPM_LEFTALIGN | TPM_BOTTOMALIGN | TPM_LEFTBUTTON, pt.x, pt.y, 0, hWnd, NULL);
+
+                    if (cmd != 0)
+                        PostMessage(hWnd, WM_DESTROY, 0, 0);
+
+                    break;
+                }
+
+                case WM_LBUTTONDBLCLK:
+                {
+                    PostMessage(hWnd, WM_DESTROY, 0, 0);
+                    break;
+                }
+            }
+
+            return 0;
+        }
     }
 
     return DefWindowProc(hWnd, uMsg, wParam, lParam);
+}
+
+void AddTrayIcon(HWND hWnd)
+{
+    NOTIFYICONDATA nid;
+    nid.cbSize = sizeof(nid);
+    nid.hWnd = hWnd;
+    nid.uID = 1;
+    nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
+    nid.uCallbackMessage = WM_TRAY;
+    nid.hIcon = hIcon;
+
+    Shell_NotifyIcon(NIM_ADD, &nid);
+}
+
+void RemoveTrayIcon(HWND hWnd)
+{
+    NOTIFYICONDATA nid;
+    nid.cbSize = sizeof(nid);
+    nid.hWnd = hWnd;
+    nid.uID = 1;
+
+    Shell_NotifyIcon(NIM_DELETE, &nid);
 }
