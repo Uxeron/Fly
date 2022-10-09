@@ -19,7 +19,7 @@ void RemoveTrayIcon(HWND hWnd);
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, int nCmdShow)
 {
     // Register the window class.
-    const char CLASS_NAME[]  = "Fly Transparent Window Class";
+    const wchar_t CLASS_NAME[]  = L"Fly Transparent Window Class";
 
     WNDCLASS wc = { };
     wc.lpfnWndProc   = WindowProc;
@@ -30,7 +30,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
     // Create the window.
     HWND hWnd = CreateWindowEx(
         WS_EX_COMPOSITED | WS_EX_LAYERED | WS_EX_NOACTIVATE | WS_EX_TOPMOST | WS_EX_TRANSPARENT,
-        CLASS_NAME, "Fly", WS_POPUP, 500, 500, 64, 64, NULL, NULL, hInstance, NULL);
+        CLASS_NAME, L"Fly", WS_POPUP, 500, 500, 64, 64, NULL, NULL, hInstance, NULL);
 
     if (hWnd == NULL)
         return 0;
@@ -127,7 +127,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 case WM_CONTEXTMENU:
                 {
                     HMENU hmenu = CreatePopupMenu();
-                    InsertMenu(hmenu, 0, MF_BYPOSITION | MF_STRING, 1, "Quit");
+                    InsertMenu(hmenu, 0, MF_BYPOSITION | MF_STRING, 1, L"Quit");
 
                     SetForegroundWindow(hWnd);
 
