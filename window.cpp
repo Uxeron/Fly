@@ -164,6 +164,7 @@ void AddTrayIcon(HWND hWnd)
     nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
     nid.uCallbackMessage = WM_TRAY;
     nid.hIcon = hIcon;
+    wcscpy(nid.szTip, L"Fly");
 
     Shell_NotifyIcon(NIM_ADD, &nid);
 }
