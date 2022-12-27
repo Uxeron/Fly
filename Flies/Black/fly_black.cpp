@@ -1,7 +1,7 @@
-#include "fly.h"
+#include "fly_black.h"
 #include <random>
 
-Vector Fly::move(int window_x, int window_y, int mouse_x, int mouse_y)
+Vector FlyBlack::move(int window_x, int window_y, int mouse_x, int mouse_y)
 {
     Vector fly_pos = Vector(window_x + size/2, window_y + size/2);
     Vector mouse_pos = Vector(mouse_x, mouse_y);

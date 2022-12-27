@@ -1,8 +1,12 @@
 #include <windows.h>
 #include "resource.h"
-#include "fly.h"
+#include "Flies\Black\fly_black.h"
+#include "Flies\Red\fly_red.h"
+#include "Flies\Yellow\fly_yellow.h"
+#include "Flies\White\fly_white.h"
 
-#define TIMER_FLY 1001
+#define TIMER_FLY_ANIMATION 1001
+#define TIMER_FLY_MOVE 1002
 #define WM_TRAY (WM_USER + 1)
 
 HICON hIcon = NULL;
@@ -13,7 +17,11 @@ int currentFrame = 0;
 HBITMAP hBitmapFlyBitmaps[6];
 HBITMAP* hBitmapFlyMap[flyCount][2];
 
-Fly fly;
+FlyBlack flyBlack;
+FlyRed flyRed;
+FlyYellow flyYellow;
+FlyWhite flyWhite;
+
 
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void AddTrayIcon(HWND hWnd);
@@ -60,8 +68,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
     hBitmapFlyMap[3][0] = &hBitmapFlyBitmaps[4];
     hBitmapFlyMap[3][1] = &hBitmapFlyBitmaps[5];
 
-    // Start fly event timer
-    SetTimer(hWnd, TIMER_FLY, 33, (TIMERPROC) NULL);
+    // Start fly event timers
+    SetTimer(hWnd, TIMER_FLY_ANIMATION, 33, (TIMERPROC) NULL); // 30 FPS
+    SetTimer(hWnd, TIMER_FLY_MOVE, 16, (TIMERPROC) NULL); // 60FPS
 
     // Create the tray icon
     AddTrayIcon(hWnd);
@@ -113,27 +122,49 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         case WM_TIMER:
         {
-            // Make sure this is the right timer
-            if (wParam != TIMER_FLY)
+            if (wParam == TIMER_FLY_ANIMATION)
+            {
+                // Update fly image
+                currentFrame = currentFrame == 0 ? 1 : 0;
+                InvalidateRect(hWnd, NULL, false);
+
+                // Reset fly timer
+                SetTimer(hWnd, TIMER_FLY_ANIMATION, 33, (TIMERPROC) NULL);
                 break;
+            }
+            else if (wParam == TIMER_FLY_MOVE)
+            {
+                // Move fly
+                RECT window;
+                GetWindowRect(hWnd, &window);
 
-            // Update fly image
-            currentFrame = currentFrame == 0 ? 1 : 0;
-            InvalidateRect(hWnd, NULL, false);
+                POINT mouse;
+                GetCursorPos(&mouse);
 
-            // Move fly
-            RECT window;
-            GetWindowRect(hWnd, &window);
+                Vector fly_target;
 
-            POINT mouse;
-            GetCursorPos(&mouse);
+                switch(currentAnimation) 
+                {
+                    case 0:
+                        fly_target = flyBlack.move(window.left, window.top, mouse.x, mouse.y);
+                        break;
+                    case 1:
+                        fly_target = flyRed.move(window.left, window.top, mouse.x, mouse.y);
+                        break;
+                    case 2:
+                        fly_target = flyYellow.move(window.left, window.top, mouse.x, mouse.y);
+                        break;
+                    case 3:
+                        fly_target = flyWhite.move(window.left, window.top, mouse.x, mouse.y);
+                        break;
+                }
 
-            Vector fly_target = fly.move(window.left, window.top, mouse.x, mouse.y);
-            SetWindowPos(hWnd, NULL, fly_target.x, fly_target.y, 0, 0, SWP_NOSIZE);
+                SetWindowPos(hWnd, NULL, fly_target.x, fly_target.y, 0, 0, SWP_NOSIZE);
 
-            // Reset fly timer
-            SetTimer(hWnd, TIMER_FLY, 33, (TIMERPROC) NULL);
-            break;
+                // Reset fly timer
+                SetTimer(hWnd, TIMER_FLY_MOVE, 16, (TIMERPROC) NULL);
+                break;
+            }
         }
 
         case WM_TRAY:

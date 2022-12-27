@@ -1,12 +1,11 @@
 #pragma once
-#include "vector.h"
+#include "..\fly.h"
 
-class Fly
+class FlyRed: public Fly
 {
-private:
-    int size = 64;
-    float speed_chase = 5.0;
-    float speed_idle = 1.0;
+protected:
+    float speed_chase = 10.0;
+    float speed_idle = 3.0;
     Vector* target_point = nullptr;
 
 public:
