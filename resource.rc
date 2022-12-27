@@ -6,4 +6,8 @@
 IDI_ICON1         ICON    "fly.ico"
 IDB_BITMAP_FLY_1  BITMAP  "fly_1.bmp"
 IDB_BITMAP_FLY_2  BITMAP  "fly_2.bmp"
+IDB_BITMAP_FLY_3  BITMAP  "fly_3.bmp"
+IDB_BITMAP_FLY_4  BITMAP  "fly_4.bmp"
+IDB_BITMAP_FLY_5  BITMAP  "fly_5.bmp"
+IDB_BITMAP_FLY_6  BITMAP  "fly_6.bmp"
 #endif 

@@ -6,9 +6,12 @@
 #define WM_TRAY (WM_USER + 1)
 
 HICON hIcon = NULL;
-HBITMAP hBitmap_Fly_1 = NULL;
-HBITMAP hBitmap_Fly_2 = NULL;
-HBITMAP* hBitmap_Fly_Current = &hBitmap_Fly_1;
+
+const int flyCount = 4;
+int currentAnimation = 0;
+int currentFrame = 0;
+HBITMAP hBitmapFlyBitmaps[6];
+HBITMAP* hBitmapFlyMap[flyCount][2];
 
 Fly fly;
 
@@ -40,8 +43,22 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 
     // Load images from embedded resource file
     hIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(IDI_ICON1), IMAGE_ICON, 0, 0, 0);
-    hBitmap_Fly_1 = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_BITMAP_FLY_1), IMAGE_BITMAP, 0, 0, 0);
-    hBitmap_Fly_2 = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_BITMAP_FLY_2), IMAGE_BITMAP, 0, 0, 0);
+    hBitmapFlyBitmaps[0] = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_BITMAP_FLY_1), IMAGE_BITMAP, 0, 0, 0);
+    hBitmapFlyBitmaps[1] = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_BITMAP_FLY_2), IMAGE_BITMAP, 0, 0, 0);
+    hBitmapFlyBitmaps[2] = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_BITMAP_FLY_3), IMAGE_BITMAP, 0, 0, 0);
+    hBitmapFlyBitmaps[3] = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_BITMAP_FLY_4), IMAGE_BITMAP, 0, 0, 0);
+    hBitmapFlyBitmaps[4] = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_BITMAP_FLY_5), IMAGE_BITMAP, 0, 0, 0);
+    hBitmapFlyBitmaps[5] = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_BITMAP_FLY_6), IMAGE_BITMAP, 0, 0, 0);
+
+    // Map fly images to animations
+    hBitmapFlyMap[0][0] = &hBitmapFlyBitmaps[0];
+    hBitmapFlyMap[0][1] = &hBitmapFlyBitmaps[1];
+    hBitmapFlyMap[1][0] = &hBitmapFlyBitmaps[0];
+    hBitmapFlyMap[1][1] = &hBitmapFlyBitmaps[2];
+    hBitmapFlyMap[2][0] = &hBitmapFlyBitmaps[0];
+    hBitmapFlyMap[2][1] = &hBitmapFlyBitmaps[3];
+    hBitmapFlyMap[3][0] = &hBitmapFlyBitmaps[4];
+    hBitmapFlyMap[3][1] = &hBitmapFlyBitmaps[5];
 
     // Start fly event timer
     SetTimer(hWnd, TIMER_FLY, 33, (TIMERPROC) NULL);
@@ -81,10 +98,10 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             HDC hdc = BeginPaint(hWnd, &ps);
 
             HDC hdcMem = CreateCompatibleDC(hdc);
-            HGDIOBJ oldBitmap = SelectObject(hdcMem, *hBitmap_Fly_Current);
+            HGDIOBJ oldBitmap = SelectObject(hdcMem, *hBitmapFlyMap[currentAnimation][currentFrame]);
 
             BITMAP bitmap;
-            GetObject(*hBitmap_Fly_Current, sizeof(bitmap), &bitmap);
+            GetObject(*hBitmapFlyMap[currentAnimation][currentFrame], sizeof(bitmap), &bitmap);
             BitBlt(hdc, 0, 0, bitmap.bmWidth, bitmap.bmHeight, hdcMem, 0, 0, SRCCOPY);
 
             SelectObject(hdcMem, oldBitmap);
@@ -101,7 +118,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 break;
 
             // Update fly image
-            hBitmap_Fly_Current = hBitmap_Fly_Current == &hBitmap_Fly_1 ? &hBitmap_Fly_2 : &hBitmap_Fly_1;
+            currentFrame = currentFrame == 0 ? 1 : 0;
             InvalidateRect(hWnd, NULL, false);
 
             // Move fly
@@ -127,7 +144,8 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 case WM_CONTEXTMENU:
                 {
                     HMENU hmenu = CreatePopupMenu();
-                    InsertMenu(hmenu, 0, MF_BYPOSITION | MF_STRING, 1, L"Quit");
+                    InsertMenu(hmenu, 0, MF_BYPOSITION | MF_STRING, 1, L"Switch fly");
+                    InsertMenu(hmenu, 1, MF_BYPOSITION | MF_STRING, 2, L"Quit");
 
                     SetForegroundWindow(hWnd);
 
@@ -135,7 +153,9 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     GetCursorPos(&pt);
                     int cmd = TrackPopupMenu(hmenu, TPM_RETURNCMD | TPM_LEFTALIGN | TPM_BOTTOMALIGN | TPM_LEFTBUTTON, pt.x, pt.y, 0, hWnd, NULL);
 
-                    if (cmd != 0)
+                    if (cmd == 1)
+                        currentAnimation = ++currentAnimation >= flyCount ? 0 : currentAnimation;
+                    if (cmd == 2)
                         PostMessage(hWnd, WM_DESTROY, 0, 0);
 
                     break;
